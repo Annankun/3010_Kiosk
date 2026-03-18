@@ -246,9 +246,11 @@
   <div class="icon">✅</div>
   <h2>Order Placed!</h2>
   <div class="order-id" id="displayOrderId"></div>
+  <div id="qrcode" style="display:flex; justify-content:center; margin: 8px 0 14px;"></div>
   <p>Show this number at the kiosk when your order is ready.</p>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, push, serverTimestamp }
@@ -324,8 +326,16 @@
         source:    "mobile",
         timestamp: serverTimestamp()
       });
+      const fullOrderKey = newOrder.key;
       const shortId = newOrder.key.slice(-6).toUpperCase();
       document.getElementById("displayOrderId").textContent = "#" + shortId;
+      const qrNode = document.getElementById("qrcode");
+      qrNode.innerHTML = "";
+      new QRCode(qrNode, {
+        text: fullOrderKey,
+        width: 170,
+        height: 170
+      });
       document.getElementById("orderForm").style.display = "none";
       document.getElementById("confirmation").style.display = "block";
     } catch (err) {
