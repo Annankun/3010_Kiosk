@@ -42,6 +42,12 @@ def _status_handler_factory(component: str):
     return handler
 
 
+
+def reset_component_status() -> None:
+    with status_lock:
+        for name in ("boiler", "mixer", "garnish"):
+            component_status[name] = ""
+
 def all_components_complete() -> bool:
     with status_lock:
         return all(component_status.get(name) == "complete" for name in ("boiler", "mixer", "garnish"))
@@ -166,6 +172,7 @@ def process_orders() -> None:
             continue
 
         mark_order(key, "processing")
+        reset_component_status()
         consume_order_inventory(order)
 
         while running:

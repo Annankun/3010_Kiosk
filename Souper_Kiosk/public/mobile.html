@@ -330,12 +330,7 @@
   }
 
   window.selectSoup = function(btn) {
-    document.querySelectorAll(".item-btn[data-price='8.99'], .item-btn[data-price='9.99'], .item-btn[data-price='7.99'], .item-btn[data-price='9.49'], .item-btn[data-price='8.49']").forEach(b => {
-      if (["Chicken Broth","Tomato Soup","Beef Broth","Vegetable Soup","Mushroom Soup","Miso Soup"].includes(b.dataset.name)) {
-        b.classList.remove("selected");
-      }
-    });
-    // simpler: just deselect all soup btns
+    // Deselect all soup buttons in the soup card
     document.querySelectorAll("#orderForm .card:first-child .item-btn").forEach(b => b.classList.remove("selected"));
     btn.classList.add("selected");
     selectedSoup = { name: btn.dataset.name, price: btn.dataset.price };
