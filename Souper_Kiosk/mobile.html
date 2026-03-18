@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Souper Computer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      background: #2563b0;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 0.02em;
+    }
+
+    .content {
+      width: 100%;
+      max-width: 480px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-label {
+      font-weight: bold;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .item-btn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      background: #f5f5f5;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.15s;
+    }
+
+    .item-btn .name { font-weight: bold; color: #222; }
+    .item-btn .price { color: #2563b0; font-size: 0.85rem; }
+
+    .item-btn.selected {
+      background: #2563b0;
+      border-color: #2563b0;
+    }
+    .item-btn.selected .name { color: white; }
+    .item-btn.selected .price { color: #cde; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 4px 0 12px;
+    }
+
+    .summary {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .summary-lines {
+      font-size: 0.88rem;
+      color: #555;
+      min-height: 40px;
+      margin-bottom: 12px;
+      line-height: 1.7;
+    }
+
+    .total-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2563b0;
+      color: white;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .total-bar .amount { font-size: 1.4rem; }
+
+    button#orderBtn {
+      width: 100%;
+      padding: 16px;
+      background: #3a9e4f;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    button#orderBtn:hover { background: #2e7d3e; }
+    button#orderBtn:disabled { background: #aaa; cursor: not-allowed; }
+
+    #confirmation {
+      display: none;
+      background: white;
+      border-radius: 12px;
+      padding: 36px 24px;
+      width: 100%;
+      max-width: 480px;
+      margin: 24px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    #confirmation .icon { font-size: 3rem; margin-bottom: 12px; }
+    #confirmation h2 { font-size: 1.3rem; margin-bottom: 8px; }
+    #confirmation .order-id {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #2563b0;
+      letter-spacing: 0.12em;
+      margin: 14px 0;
+    }
+    #confirmation p { color: #777; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<header>Souper Computer</header>
+
+<div class="content" id="orderForm">
+
+  <!-- Base Soup -->
+  <div class="card">
+    <div class="section-label">Select Base Soup</div>
+    <hr class="divider">
+    <div class="grid">
+      <button class="item-btn" data-name="Chicken Broth" data-price="8.99" onclick="selectSoup(this)">
+        <span class="name">Chicken Broth</span><span class="price">$8.99</span>
+      </button>
+      <button class="item-btn" data-name="Tomato Soup" data-price="8.99" onclick="selectSoup(this)">
+        <span class="name">Tomato Soup</span><span class="price">$8.99</span>
+      </button>
+      <button class="item-btn" data-name="Beef Broth" data-price="9.99" onclick="selectSoup(this)">
+        <span class="name">Beef Broth</span><span class="price">$9.99</span>
+      </button>
+      <button class="item-btn" data-name="Vegetable Soup" data-price="7.99" onclick="selectSoup(this)">
+        <span class="name">Vegetable Soup</span><span class="price">$7.99</span>
+      </button>
+      <button class="item-btn" data-name="Mushroom Soup" data-price="9.49" onclick="selectSoup(this)">
+        <span class="name">Mushroom Soup</span><span class="price">$9.49</span>
+      </button>
+      <button class="item-btn" data-name="Miso Soup" data-price="8.49" onclick="selectSoup(this)">
+        <span class="name">Miso Soup</span><span class="price">$8.49</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Vegetables -->
+  <div class="card">
+    <div class="section-label">Vegetables (+$1.50)</div>
+    <hr class="divider">
+    <div class="grid">
+      <button class="item-btn" data-name="Broccoli" data-price="1.50" onclick="toggleTopping(this)">
+        <span class="name">Broccoli</span><span class="price">$1.50</span>
+      </button>
+      <button class="item-btn" data-name="Carrots" data-price="1.50" onclick="toggleTopping(this)">
+        <span class="name">Carrots</span><span class="price">$1.50</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Proteins -->
+  <div class="card">
+    <div class="section-label">Proteins (+$2.00-$2.50)</div>
+    <hr class="divider">
+    <div class="grid">
+      <button class="item-btn" data-name="Chicken" data-price="2.50" onclick="toggleTopping(this)">
+        <span class="name">Chicken</span><span class="price">$2.50</span>
+      </button>
+      <button class="item-btn" data-name="Tofu" data-price="2.00" onclick="toggleTopping(this)">
+        <span class="name">Tofu</span><span class="price">$2.00</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Extras -->
+  <div class="card">
+    <div class="section-label">Extras (+$0.50-$0.75)</div>
+    <hr class="divider">
+    <div class="grid">
+      <button class="item-btn" data-name="Croutons" data-price="0.50" onclick="toggleTopping(this)">
+        <span class="name">Croutons</span><span class="price">$0.50</span>
+      </button>
+      <button class="item-btn" data-name="Cheese" data-price="0.75" onclick="toggleTopping(this)">
+        <span class="name">Cheese</span><span class="price">$0.75</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary-lines" id="summaryLines">No items selected yet.</div>
+    <div class="total-bar">
+      <span>Total:</span>
+      <span class="amount" id="totalDisplay">$0.00</span>
+    </div>
+    <button id="orderBtn" onclick="submitOrder()">Order Now</button>
+  </div>
+
+</div>
+
+<!-- Confirmation screen -->
+<div id="confirmation">
+  <div class="icon">✅</div>
+  <h2>Order Placed!</h2>
+  <div class="order-id" id="displayOrderId"></div>
+  <p>Show this number at the kiosk when your order is ready.</p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, push, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey:       "AIzaSyAC0Ln-uwvVyqcfXWOO52_uFt-q_KuVr9A",
+    authDomain:   "soupercomputer-f0dad.firebaseapp.com",
+    databaseURL:  "https://soupercomputer-f0dad-default-rtdb.firebaseio.com",
+    projectId:    "soupercomputer-f0dad",
+    storageBucket:"soupercomputer-f0dad.firebasestorage.app"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  let selectedSoup    = null;
+  let selectedToppings = [];
+
+  function updateSummary() {
+    let items = [];
+    let sum = 0;
+    if (selectedSoup) {
+      items.push(`${selectedSoup.name}: $${parseFloat(selectedSoup.price).toFixed(2)}`);
+      sum += parseFloat(selectedSoup.price);
+    }
+    selectedToppings.forEach(t => {
+      items.push(`${t.name}: +$${parseFloat(t.price).toFixed(2)}`);
+      sum += parseFloat(t.price);
+    });
+    document.getElementById("summaryLines").innerHTML =
+      items.length ? items.join("<br>") : "No items selected yet.";
+    document.getElementById("totalDisplay").textContent = `$${sum.toFixed(2)}`;
+  }
+
+  window.selectSoup = function(btn) {
+    document.querySelectorAll(".item-btn[data-price='8.99'], .item-btn[data-price='9.99'], .item-btn[data-price='7.99'], .item-btn[data-price='9.49'], .item-btn[data-price='8.49']").forEach(b => {
+      if (["Chicken Broth","Tomato Soup","Beef Broth","Vegetable Soup","Mushroom Soup","Miso Soup"].includes(b.dataset.name)) {
+        b.classList.remove("selected");
+      }
+    });
+    // simpler: just deselect all soup btns
+    document.querySelectorAll("#orderForm .card:first-child .item-btn").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    selectedSoup = { name: btn.dataset.name, price: btn.dataset.price };
+    updateSummary();
+  };
+
+  window.toggleTopping = function(btn) {
+    const name  = btn.dataset.name;
+    const price = btn.dataset.price;
+    if (btn.classList.contains("selected")) {
+      btn.classList.remove("selected");
+      selectedToppings = selectedToppings.filter(t => t.name !== name);
+    } else {
+      btn.classList.add("selected");
+      selectedToppings.push({ name, price });
+    }
+    updateSummary();
+  };
+
+  window.submitOrder = async function() {
+    if (!selectedSoup) { alert("Please select a soup."); return; }
+    const btn = document.getElementById("orderBtn");
+    btn.disabled = true;
+    btn.textContent = "Placing order...";
+    try {
+      const newOrder = await push(ref(db, "orders"), {
+        soup_type: selectedSoup.name,
+        toppings:  selectedToppings.map(t => t.name),
+        total:     parseFloat(document.getElementById("totalDisplay").textContent.replace("$","")),
+        status:    "pending",
+        source:    "mobile",
+        timestamp: serverTimestamp()
+      });
+      const shortId = newOrder.key.slice(-6).toUpperCase();
+      document.getElementById("displayOrderId").textContent = "#" + shortId;
+      document.getElementById("orderForm").style.display = "none";
+      document.getElementById("confirmation").style.display = "block";
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Please try again.");
+      btn.disabled = false;
+      btn.textContent = "Order Now";
+    }
+  };
+</script>
+
+</body>
+</html>
