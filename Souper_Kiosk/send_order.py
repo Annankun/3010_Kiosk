@@ -11,7 +11,7 @@ order = {
     "order_id": order_id,
     "soup_type": "miso",
     "toppings": ["egg"],
-    "price": 9.99,
+    "total": 9.99,
     "status": "pending",
     "timestamp": time.time()
 }
