@@ -78,6 +78,20 @@
     }
     .item-btn.selected .name { color: white; }
     .item-btn.selected .price { color: #cde; }
+    .item-btn:disabled,
+    .item-btn.out-of-stock {
+      background: #d9d9d9;
+      border-color: #c3c3c3;
+      color: #777;
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
+    .item-btn:disabled .name,
+    .item-btn.out-of-stock .name,
+    .item-btn:disabled .price,
+    .item-btn.out-of-stock .price {
+      color: #777;
+    }
 
     .divider {
       border: none;
@@ -253,7 +267,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, push, serverTimestamp }
+  import { getDatabase, get, ref, push, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -269,6 +283,7 @@
 
   let selectedSoup    = null;
   let selectedToppings = [];
+  const allMenuButtons = Array.from(document.querySelectorAll(".item-btn"));
 
   function updateSummary() {
     let items = [];
@@ -284,6 +299,34 @@
     document.getElementById("summaryLines").innerHTML =
       items.length ? items.join("<br>") : "No items selected yet.";
     document.getElementById("totalDisplay").textContent = `$${sum.toFixed(2)}`;
+  }
+
+  function applyInventoryState(inventoryMap) {
+    allMenuButtons.forEach(btn => {
+      const itemName = btn.dataset.name;
+      const qty = Number(inventoryMap?.[itemName] ?? 0);
+      const outOfStock = Number.isNaN(qty) ? true : qty <= 0;
+      btn.disabled = outOfStock;
+      btn.classList.toggle("out-of-stock", outOfStock);
+      if (outOfStock && btn.classList.contains("selected")) {
+        btn.classList.remove("selected");
+        if (selectedSoup?.name === itemName) {
+          selectedSoup = null;
+        }
+        selectedToppings = selectedToppings.filter(t => t.name !== itemName);
+      }
+    });
+    updateSummary();
+  }
+
+  async function loadInventory() {
+    try {
+      const snapshot = await get(ref(db, "inventory"));
+      const inventoryMap = snapshot.val() || {};
+      applyInventoryState(inventoryMap);
+    } catch (err) {
+      console.error("Failed to load inventory:", err);
+    }
   }
 
   window.selectSoup = function(btn) {
@@ -345,6 +388,8 @@
       btn.textContent = "Order Now";
     }
   };
+
+  loadInventory();
 </script>
 
 </body>
