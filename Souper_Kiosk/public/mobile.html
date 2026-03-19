@@ -264,6 +264,7 @@
   <p>Show this number at the kiosk when your order is ready.</p>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, get, ref, push, serverTimestamp }
@@ -352,8 +353,12 @@
     const shortId = orderKey.slice(-6).toUpperCase();
     document.getElementById("displayOrderId").textContent = "#" + shortId;
 
+    const qr = qrcode(0, 'M');
+    qr.addData(orderKey);
+    qr.make();
+
     const qrNode = document.getElementById("qrcode");
-    qrNode.innerHTML = `<img width="170" height="170" src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(orderKey)}" alt="QR Code">`;
+    qrNode.innerHTML = qr.createImgTag(4, 8);
 
     document.getElementById("orderForm").style.display = "none";
     document.getElementById("confirmation").style.display = "block";
