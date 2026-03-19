@@ -91,6 +91,8 @@ def main() -> int:
             frame = camera.capture_array()
             decoded_items = decode(frame)
 
+            cv2.imshow("QR Scanner", frame)
+
             for item in decoded_items:
                 key = item.data.decode("utf-8", errors="ignore")
                 if should_skip_scan(key):
