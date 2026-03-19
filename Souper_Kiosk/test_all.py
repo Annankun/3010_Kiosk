@@ -22,12 +22,16 @@ _gpio = types.ModuleType("RPi")
 _gpio_gpio = types.ModuleType("RPi.GPIO")
 _gpio_gpio.BCM = 11
 _gpio_gpio.OUT = 0
+_gpio_gpio.IN = 1
 _gpio_gpio.HIGH = 1
 _gpio_gpio.LOW = 0
+_gpio_gpio.FALLING = 11
+_gpio_gpio.PUD_DOWN = 21
 _gpio_gpio.setmode = MagicMock()
 _gpio_gpio.setup = MagicMock()
 _gpio_gpio.output = MagicMock()
 _gpio_gpio.cleanup = MagicMock()
+_gpio_gpio.add_event_detect = MagicMock()
 _gpio.GPIO = _gpio_gpio
 sys.modules.setdefault("RPi", _gpio)
 sys.modules.setdefault("RPi.GPIO", _gpio_gpio)
@@ -221,6 +225,26 @@ class TestScannerHandle(unittest.TestCase):
         with patch("scanner.flash_led") as mock_flash:
             scanner.handle_scan("order_missing")
         mock_flash.assert_called_once_with(scanner.RED_LED_PIN)
+
+
+class TestEmergencyStop(unittest.TestCase):
+    def setUp(self):
+        self.mock_db = MagicMock()
+        self._orig_db = kiosk.firebase_db
+        kiosk.firebase_db = self.mock_db
+        kiosk.current_order_key = "order-abc"
+        kiosk.running = True
+
+    def tearDown(self):
+        kiosk.firebase_db = self._orig_db
+        kiosk.current_order_key = None
+        kiosk.running = True
+
+    def test_handle_emergency_cancels_order_and_sets_status(self):
+        kiosk.handle_emergency()
+        self.mock_db.child.return_value.child.return_value.update.assert_called_with({"status": "cancelled"})
+        self.mock_db.child.return_value.child.return_value.set.assert_called_with("emergency")
+        self.assertFalse(kiosk.running)
 
 
 if __name__ == "__main__":
