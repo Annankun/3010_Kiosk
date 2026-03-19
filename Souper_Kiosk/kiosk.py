@@ -48,6 +48,10 @@ def reset_component_status() -> None:
         for name in ("boiler", "mixer", "garnish"):
             component_status[name] = ""
 
+    # Reset Firebase values so stream re-fires when kitchen writes "complete"
+    for name in ("boiler", "mixer", "garnish"):
+        firebase_db.child(name).child("status").set("idle")
+
 def all_components_complete() -> bool:
     with status_lock:
         return all(component_status.get(name) == "complete" for name in ("boiler", "mixer", "garnish"))
