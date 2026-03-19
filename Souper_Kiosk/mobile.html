@@ -264,11 +264,11 @@
   <p>Show this number at the kiosk when your order is ready.</p>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, get, ref, push, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import QRCode from "https://cdn.jsdelivr.net/npm/qrcode/+esm";
 
   const firebaseConfig = {
     apiKey:       "AIzaSyAC0Ln-uwvVyqcfXWOO52_uFt-q_KuVr9A",
@@ -356,21 +356,11 @@
     const qrNode = document.getElementById("qrcode");
     qrNode.innerHTML = "";
 
-    if (typeof QRCode === "function") {
-      new QRCode(qrNode, {
-        text: orderKey,
-        width: 170,
-        height: 170
-      });
-    } else {
-      const fallbackImg = document.createElement("img");
-      fallbackImg.width = 170;
-      fallbackImg.height = 170;
-      fallbackImg.alt = "Order QR code";
-      fallbackImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(orderKey)}`;
-      qrNode.appendChild(fallbackImg);
-      console.warn("QRCode library missing. Used fallback QR image API.");
-    }
+    const canvas = document.createElement("canvas");
+    qrNode.appendChild(canvas);
+    QRCode.toCanvas(canvas, orderKey, { width: 170 }, (err) => {
+      if (err) console.error("QR生成失败:", err);
+    });
 
     document.getElementById("orderForm").style.display = "none";
     document.getElementById("confirmation").style.display = "block";
