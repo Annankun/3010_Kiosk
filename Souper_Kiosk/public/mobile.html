@@ -268,8 +268,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, get, ref, push, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  import QRCode from "https://cdn.jsdelivr.net/npm/qrcode/+esm";
-
   const firebaseConfig = {
     apiKey:       "AIzaSyAC0Ln-uwvVyqcfXWOO52_uFt-q_KuVr9A",
     authDomain:   "soupercomputer-f0dad.firebaseapp.com",
@@ -353,14 +351,16 @@
   function showOrderConfirmation(orderKey) {
     const shortId = orderKey.slice(-6).toUpperCase();
     document.getElementById("displayOrderId").textContent = "#" + shortId;
+
     const qrNode = document.getElementById("qrcode");
     qrNode.innerHTML = "";
 
-    const canvas = document.createElement("canvas");
-    qrNode.appendChild(canvas);
-    QRCode.toCanvas(canvas, orderKey, { width: 170 }, (err) => {
-      if (err) console.error("QR生成失败:", err);
-    });
+    const img = document.createElement("img");
+    img.width = 170;
+    img.height = 170;
+    img.alt = "Order QR code";
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(orderKey)}`;
+    qrNode.appendChild(img);
 
     document.getElementById("orderForm").style.display = "none";
     document.getElementById("confirmation").style.display = "block";
