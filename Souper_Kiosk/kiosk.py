@@ -5,12 +5,14 @@ import time
 from typing import Any, Dict, Optional, Tuple
 
 import pyrebase
+import RPi.GPIO as GPIO
 
 import db as sqlite_tools
 from config import FIREBASE_CONFIG
 
 
 POLL_INTERVAL_SECONDS = 1.0
+EMERGENCY_PIN = 23
 
 firebase = pyrebase.initialize_app(FIREBASE_CONFIG)
 firebase_db = firebase.database()
@@ -26,6 +28,7 @@ component_status: Dict[str, str] = {
 status_lock = threading.Lock()
 status_changed = threading.Event()
 running = True
+current_order_key: Optional[str] = None
 
 
 def _status_handler_factory(component: str):
@@ -163,6 +166,7 @@ def save_ready_order_to_sqlite(key: str, order: Dict[str, Any]) -> None:
 
 
 def process_orders() -> None:
+    global current_order_key
     while running:
         next_order = get_oldest_pending_order()
         if not next_order:
@@ -175,6 +179,7 @@ def process_orders() -> None:
             mark_order(key, "cancelled")
             continue
 
+        current_order_key = key
         mark_order(key, "processing")
         reset_component_status()
         consume_order_inventory(order)
@@ -193,6 +198,29 @@ def process_orders() -> None:
         wait_until_order_deleted(key)
 
 
+def handle_emergency(channel: int = None) -> None:
+    global running, current_order_key
+    print("Emergency stop triggered!")
+    if current_order_key:
+        mark_order(current_order_key, "cancelled")
+    firebase_db.child("system").child("status").set("emergency")
+    running = False
+    status_changed.set()
+
+
+def check_and_recover_from_emergency() -> None:
+    status = firebase_db.child("system").child("status").get().val()
+    if status != "emergency":
+        return
+    print("Recovering from emergency stop...")
+    orders = firebase_db.child("orders").get().val() or {}
+    for key, order in orders.items():
+        if isinstance(order, dict) and order.get("status") == "processing":
+            mark_order(key, "cancelled")
+    firebase_db.child("system").child("status").set("online")
+    print("Recovery complete. System online.")
+
+
 def handle_exit(signum: int, frame: Any) -> None:
     global running
     running = False
@@ -201,8 +229,14 @@ def handle_exit(signum: int, frame: Any) -> None:
 
 
 def main() -> int:
+    check_and_recover_from_emergency()
+
     signal.signal(signal.SIGINT, handle_exit)
     signal.signal(signal.SIGTERM, handle_exit)
+
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(EMERGENCY_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.add_event_detect(EMERGENCY_PIN, GPIO.FALLING, callback=handle_emergency, bouncetime=300)
 
     sync_inventory_to_firebase()
 

@@ -13,6 +13,7 @@ from config import FIREBASE_CONFIG
 
 GREEN_LED_PIN = 17
 RED_LED_PIN = 27
+EMERGENCY_PIN = 23
 LED_ON_SECONDS = 2.0
 SCAN_COOLDOWN_SECONDS = 2.0
 
@@ -28,6 +29,7 @@ def setup_gpio() -> None:
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(GREEN_LED_PIN, GPIO.OUT)
     GPIO.setup(RED_LED_PIN, GPIO.OUT)
+    GPIO.setup(EMERGENCY_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.output(GREEN_LED_PIN, GPIO.LOW)
     GPIO.output(RED_LED_PIN, GPIO.LOW)
 
