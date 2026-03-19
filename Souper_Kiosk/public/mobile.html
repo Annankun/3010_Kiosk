@@ -350,6 +350,32 @@
     updateSummary();
   };
 
+  function showOrderConfirmation(orderKey) {
+    const shortId = orderKey.slice(-6).toUpperCase();
+    document.getElementById("displayOrderId").textContent = "#" + shortId;
+    const qrNode = document.getElementById("qrcode");
+    qrNode.innerHTML = "";
+
+    if (typeof QRCode === "function") {
+      new QRCode(qrNode, {
+        text: orderKey,
+        width: 170,
+        height: 170
+      });
+    } else {
+      const fallbackImg = document.createElement("img");
+      fallbackImg.width = 170;
+      fallbackImg.height = 170;
+      fallbackImg.alt = "Order QR code";
+      fallbackImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(orderKey)}`;
+      qrNode.appendChild(fallbackImg);
+      console.warn("QRCode library missing. Used fallback QR image API.");
+    }
+
+    document.getElementById("orderForm").style.display = "none";
+    document.getElementById("confirmation").style.display = "block";
+  }
+
   window.submitOrder = async function() {
     if (!selectedSoup) { alert("Please select a soup."); return; }
     const btn = document.getElementById("orderBtn");
@@ -364,18 +390,7 @@
         source:    "mobile",
         timestamp: serverTimestamp()
       });
-      const fullOrderKey = newOrder.key;
-      const shortId = newOrder.key.slice(-6).toUpperCase();
-      document.getElementById("displayOrderId").textContent = "#" + shortId;
-      const qrNode = document.getElementById("qrcode");
-      qrNode.innerHTML = "";
-      new QRCode(qrNode, {
-        text: fullOrderKey,
-        width: 170,
-        height: 170
-      });
-      document.getElementById("orderForm").style.display = "none";
-      document.getElementById("confirmation").style.display = "block";
+      showOrderConfirmation(newOrder.key);
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please try again.");
