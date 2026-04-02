@@ -266,7 +266,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, get, ref, push, serverTimestamp }
+  import { getDatabase, get, ref, set, runTransaction, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import QRCode from "https://cdn.jsdelivr.net/npm/qrcode/+esm";
 
@@ -350,15 +350,14 @@
     updateSummary();
   };
 
-  function showOrderConfirmation(orderKey) {
-    const shortId = orderKey.slice(-6).toUpperCase();
-    document.getElementById("displayOrderId").textContent = "#" + shortId;
+  function showOrderConfirmation(orderNumber) {
+    document.getElementById("displayOrderId").textContent = "#" + orderNumber;
     const qrNode = document.getElementById("qrcode");
     qrNode.innerHTML = "";
 
     const canvas = document.createElement("canvas");
     qrNode.appendChild(canvas);
-    QRCode.toCanvas(canvas, orderKey, { width: 170 }, (err) => {
+    QRCode.toCanvas(canvas, String(orderNumber), { width: 170 }, (err) => {
       if (err) console.error("QR生成失败:", err);
     });
 
@@ -372,7 +371,11 @@
     btn.disabled = true;
     btn.textContent = "Placing order...";
     try {
-      const newOrder = await push(ref(db, "orders"), {
+      const counterRef = ref(db, "order_counter");
+      const result = await runTransaction(counterRef, (current) => (current || 0) + 1);
+      const orderNumber = result.snapshot.val();
+
+      await set(ref(db, `orders/${orderNumber}`), {
         soup_type: selectedSoup.name,
         toppings:  selectedToppings.map(t => t.name),
         total:     parseFloat(document.getElementById("totalDisplay").textContent.replace("$","")),
@@ -380,7 +383,7 @@
         source:    "mobile",
         timestamp: serverTimestamp()
       });
-      showOrderConfirmation(newOrder.key);
+      showOrderConfirmation(orderNumber);
     } catch (err) {
       console.error(err);
       alert("Something went wrong. Please try again.");
